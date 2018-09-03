@@ -10,11 +10,9 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.android.volley.Request;
-import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
-import com.android.volley.toolbox.Volley;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -47,7 +45,6 @@ public class MatchesFragment extends Fragment {
     }
 
     private void loadMatches() {
-        RequestQueue rq = Volley.newRequestQueue(getActivity());
         JsonArrayRequest jsonObjectRequest = new JsonArrayRequest(Request.Method.GET, API_URL, null, new Response.Listener<JSONArray>() {
 
             @Override
@@ -72,6 +69,6 @@ public class MatchesFragment extends Fragment {
                 error.printStackTrace();
             }
         });
-        rq.add(jsonObjectRequest);
+        VolleySingleton.getInstance(getActivity().getApplicationContext()).addToRequestQueue(jsonObjectRequest);
     }
 }
