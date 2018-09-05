@@ -7,10 +7,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.android.volley.toolbox.NetworkImageView;
+
 import java.util.List;
 
 public class MatchAdapter extends RecyclerView.Adapter<MatchAdapter.MatchViewHolder> {
-
 
     private Context context;
     private List<Match> matchList;
@@ -23,7 +24,7 @@ public class MatchAdapter extends RecyclerView.Adapter<MatchAdapter.MatchViewHol
     @Override
     public MatchViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         LayoutInflater inflater = LayoutInflater.from(context);
-        View view = inflater.inflate(R.layout.match_list, null);
+        View view = inflater.inflate(R.layout.layout_match_overview, null);
         return new MatchViewHolder(view);
     }
 
@@ -33,6 +34,17 @@ public class MatchAdapter extends RecyclerView.Adapter<MatchAdapter.MatchViewHol
 
         holder.textViewRadiantTeam.setText(match.getRadiantTeam());
         holder.textViewDireTeam.setText(match.getDireTeam());
+        holder.textViewDate.setText(match.getDate());
+        if(match.getRadiantImageUrl().equals("null")) {
+            holder.imageViewRadiant.setDefaultImageResId(R.drawable.ic_error_sign);
+        } else {
+            holder.imageViewRadiant.setImageUrl(match.getRadiantImageUrl(), VolleySingleton.getInstance(context).getImageLoader());
+        }
+        if(match.getDireImageUrl().equals("null")) {
+            holder.imageViewDire.setDefaultImageResId(R.drawable.ic_error_sign);
+        } else {
+            holder.imageViewDire.setImageUrl(match.getDireImageUrl(), VolleySingleton.getInstance(context).getImageLoader());
+        }
     }
 
     @Override
@@ -46,13 +58,16 @@ public class MatchAdapter extends RecyclerView.Adapter<MatchAdapter.MatchViewHol
 
     class MatchViewHolder extends RecyclerView.ViewHolder {
 
-        TextView textViewRadiantTeam, textViewDireTeam;
+        TextView textViewRadiantTeam, textViewDireTeam, textViewDate;
+        NetworkImageView imageViewRadiant, imageViewDire;
 
-        public MatchViewHolder(View itemView) {
+        MatchViewHolder(View itemView) {
             super(itemView);
-
-            textViewRadiantTeam = itemView.findViewById(R.id.textViewRadiantTeam);
-            textViewDireTeam = itemView.findViewById(R.id.textViewDireTeam);
+            textViewRadiantTeam = itemView.findViewById(R.id.textViewRadiantName);
+            textViewDireTeam = itemView.findViewById(R.id.textViewDireName);
+            textViewDate = itemView.findViewById(R.id.textViewDate);
+            imageViewRadiant = itemView.findViewById(R.id.imageViewRadiant);
+            imageViewDire = itemView.findViewById(R.id.imageViewDire);
         }
     }
 }
