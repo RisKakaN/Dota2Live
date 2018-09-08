@@ -4,14 +4,14 @@ public class Match {
 
     private String radiantTeam;
     private String direTeam;
-    private String date;
+    private long startTime;
     private String radiantImageUrl;
     private String direImageUrl;
 
-    public Match(String radiantTeam, String direTeam, String date, String radiantImageUrl, String direImageUrl) {
+    public Match(String radiantTeam, String direTeam, long startTime, String radiantImageUrl, String direImageUrl) {
         this.radiantTeam = radiantTeam;
         this.direTeam = direTeam;
-        this.date = date;
+        this.startTime = startTime;
         this.radiantImageUrl = radiantImageUrl;
         this.direImageUrl = direImageUrl;
     }
@@ -24,8 +24,8 @@ public class Match {
         return direTeam;
     }
 
-    public String getDate() {
-        return date;
+    public long getStartTime() {
+        return startTime;
     }
 
     public String getRadiantImageUrl() {

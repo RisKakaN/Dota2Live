@@ -1,6 +1,8 @@
 package martin.so.dota2live;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -20,8 +22,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 public class MatchesFragment extends Fragment {
 
@@ -29,7 +33,9 @@ public class MatchesFragment extends Fragment {
     private static final String MATCH_ID_API_URL = "https://api.opendota.com/api/proMatches";
     private static final String MATCH_DETAILS_API_URL = "https://api.opendota.com/api/matches/";
 
-    private List<Match> matchList;
+    private CountDownLatch allDoneSignal;
+
+    private volatile List<Match> matchList;
     private RecyclerView recyclerView;
     private MatchAdapter matchAdapter;
 
@@ -41,7 +47,35 @@ public class MatchesFragment extends Fragment {
         matchList = new ArrayList<>();
         matchAdapter = new MatchAdapter(getActivity().getApplicationContext(), matchList);
         recyclerView.setAdapter(matchAdapter);
-        loadMatches(5);
+        int numberOfMatchesToShow = 5;
+        allDoneSignal = new CountDownLatch(numberOfMatchesToShow);
+        loadMatches(numberOfMatchesToShow);
+
+        final Handler mainThreadHandler = new Handler(Looper.getMainLooper());
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    allDoneSignal.await();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                mainThreadHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        Collections.sort(matchList, new Comparator<Match>() {
+                            public int compare(Match m1, Match m2) {
+                                long j1 = m1.getStartTime();
+                                long j2 = m2.getStartTime();
+                                return (Long.compare(j2, j1));
+                            }
+                        });
+                        matchAdapter = new MatchAdapter(getActivity().getApplicationContext(), matchList);
+                        recyclerView.setAdapter(matchAdapter);
+                    }
+                });
+            }
+        }).start();
         return view;
     }
 
@@ -52,9 +86,9 @@ public class MatchesFragment extends Fragment {
             public void onResponse(JSONArray response) {
                 try {
                     for (int i = 0; i < numberOfMatches; i++) {
-                    JSONObject match = (JSONObject) response.get(i);
-                    String matchID = match.getString("match_id");
-                    loadMatchOverviewInfo(matchID);
+                        JSONObject match = (JSONObject) response.get(i);
+                        String matchID = match.getString("match_id");
+                        loadMatchOverviewInfo(matchID);
                     }
                 } catch (JSONException e) {
                     Log.e(TAG, e.getMessage());
@@ -64,6 +98,7 @@ public class MatchesFragment extends Fragment {
 
             @Override
             public void onErrorResponse(VolleyError e) {
+                allDoneSignal.countDown();
                 Log.e(TAG, e.getMessage());
             }
         });
@@ -72,6 +107,7 @@ public class MatchesFragment extends Fragment {
 
     private void loadMatchOverviewInfo(String matchID) {
         String matchDetailsApiUrl = MATCH_DETAILS_API_URL + matchID;
+
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, matchDetailsApiUrl, null, new Response.Listener<JSONObject>() {
 
             @Override
@@ -86,19 +122,18 @@ public class MatchesFragment extends Fragment {
                     String direTeamImage = direTeamDetails.getString("logo_url");
 
                     long startTime = response.getLong("start_time");
-                    Date date = new Date(startTime * 1000);
-
-                    matchList.add(new Match(radiantTeamName, direTeamName, date.toString(), radiantTeamImage, direTeamImage));
-                    matchAdapter = new MatchAdapter(getActivity().getApplicationContext(), matchList);
-                    recyclerView.setAdapter(matchAdapter);
+                    matchList.add(new Match(radiantTeamName, direTeamName, startTime, radiantTeamImage, direTeamImage));
                 } catch (JSONException e) {
                     Log.e(TAG, e.getMessage());
+                } finally {
+                    allDoneSignal.countDown();
                 }
             }
         }, new Response.ErrorListener() {
 
             @Override
             public void onErrorResponse(VolleyError e) {
+                allDoneSignal.countDown();
                 Log.e(TAG, e.getMessage());
             }
         });

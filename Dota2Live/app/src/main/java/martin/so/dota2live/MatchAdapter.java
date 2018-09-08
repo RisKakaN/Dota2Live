@@ -9,6 +9,7 @@ import android.widget.TextView;
 
 import com.android.volley.toolbox.NetworkImageView;
 
+import java.util.Date;
 import java.util.List;
 
 public class MatchAdapter extends RecyclerView.Adapter<MatchAdapter.MatchViewHolder> {
@@ -34,7 +35,8 @@ public class MatchAdapter extends RecyclerView.Adapter<MatchAdapter.MatchViewHol
 
         holder.textViewRadiantTeam.setText(match.getRadiantTeam());
         holder.textViewDireTeam.setText(match.getDireTeam());
-        holder.textViewDate.setText(match.getDate());
+        Date date = new Date(match.getStartTime() * 1000);
+        holder.textViewDate.setText(date.toString());
         if(match.getRadiantImageUrl().equals("null")) {
             holder.imageViewRadiant.setDefaultImageResId(R.drawable.ic_error_sign);
         } else {
