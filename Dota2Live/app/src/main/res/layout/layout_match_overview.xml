@@ -17,12 +17,14 @@
             <com.android.volley.toolbox.NetworkImageView
                 android:id="@+id/imageViewRadiant"
                 android:layout_width="45dp"
-                android:layout_height="45dp" />
+                android:layout_height="45dp"
+                android:background="@color/cardview_shadow_start_color"/>
 
             <com.android.volley.toolbox.NetworkImageView
                 android:id="@+id/imageViewDire"
                 android:layout_width="45dp"
                 android:layout_height="45dp"
+                android:background="@color/cardview_shadow_start_color"
                 android:layout_below="@id/imageViewRadiant" />
 
             <TextView

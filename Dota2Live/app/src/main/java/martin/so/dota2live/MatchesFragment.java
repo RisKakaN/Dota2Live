@@ -1,5 +1,6 @@
 package martin.so.dota2live;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -10,6 +11,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import com.android.volley.Request;
 import com.android.volley.Response;
@@ -26,6 +28,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 public class MatchesFragment extends Fragment {
 
@@ -39,16 +42,20 @@ public class MatchesFragment extends Fragment {
     private RecyclerView recyclerView;
     private MatchAdapter matchAdapter;
 
+    View view;
+    Context fragmentContext;
+
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_matches, container, false);
+        view = inflater.inflate(R.layout.fragment_matches, container, false);
         recyclerView = view.findViewById(R.id.recylcerView);
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         matchList = new ArrayList<>();
-        matchAdapter = new MatchAdapter(getActivity().getApplicationContext(), matchList);
+        fragmentContext = getActivity().getApplicationContext();
+        matchAdapter = new MatchAdapter(fragmentContext, matchList);
         recyclerView.setAdapter(matchAdapter);
-        int numberOfMatchesToShow = 5;
-        allDoneSignal = new CountDownLatch(numberOfMatchesToShow);
+        int numberOfMatchesToShow = 10;
+        allDoneSignal = new CountDownLatch(11);
         loadMatches(numberOfMatchesToShow);
 
         final Handler mainThreadHandler = new Handler(Looper.getMainLooper());
@@ -56,9 +63,9 @@ public class MatchesFragment extends Fragment {
             @Override
             public void run() {
                 try {
-                    allDoneSignal.await();
+                    allDoneSignal.await(5, TimeUnit.SECONDS);
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    Log.e(TAG, e.getMessage());
                 }
                 mainThreadHandler.post(new Runnable() {
                     @Override
@@ -70,13 +77,18 @@ public class MatchesFragment extends Fragment {
                                 return (Long.compare(j2, j1));
                             }
                         });
-                        matchAdapter = new MatchAdapter(getActivity().getApplicationContext(), matchList);
+                        matchAdapter = new MatchAdapter(fragmentContext, matchList);
                         recyclerView.setAdapter(matchAdapter);
                     }
                 });
             }
         }).start();
         return view;
+    }
+
+    private void showNetworkIssuesLabel() {
+        TextView networkIssuesLabel = view.findViewById(R.id.textViewNetworkIssues);
+        networkIssuesLabel.setVisibility(View.VISIBLE);
     }
 
     private void loadMatches(final int numberOfMatches) {
@@ -91,18 +103,19 @@ public class MatchesFragment extends Fragment {
                         loadMatchOverviewInfo(matchID);
                     }
                 } catch (JSONException e) {
-                    Log.e(TAG, e.getMessage());
+                    Log.e(TAG, "" + e);
                 }
             }
         }, new Response.ErrorListener() {
 
             @Override
             public void onErrorResponse(VolleyError e) {
+                showNetworkIssuesLabel();
                 allDoneSignal.countDown();
-                Log.e(TAG, e.getMessage());
+                Log.e(TAG, "" + e);
             }
         });
-        VolleySingleton.getInstance(getActivity().getApplicationContext()).addToRequestQueue(jsonArrayRequest);
+        VolleySingleton.getInstance(fragmentContext).addToRequestQueue(jsonArrayRequest);
     }
 
     private void loadMatchOverviewInfo(String matchID) {
@@ -124,7 +137,7 @@ public class MatchesFragment extends Fragment {
                     long startTime = response.getLong("start_time");
                     matchList.add(new Match(radiantTeamName, direTeamName, startTime, radiantTeamImage, direTeamImage));
                 } catch (JSONException e) {
-                    Log.e(TAG, e.getMessage());
+                    Log.e(TAG, "" + e);
                 } finally {
                     allDoneSignal.countDown();
                 }
@@ -133,10 +146,11 @@ public class MatchesFragment extends Fragment {
 
             @Override
             public void onErrorResponse(VolleyError e) {
+                showNetworkIssuesLabel();
                 allDoneSignal.countDown();
-                Log.e(TAG, e.getMessage());
+                Log.e(TAG, "" + e);
             }
         });
-        VolleySingleton.getInstance(getActivity().getApplicationContext()).addToRequestQueue(jsonObjectRequest);
+        VolleySingleton.getInstance(fragmentContext).addToRequestQueue(jsonObjectRequest);
     }
 }
