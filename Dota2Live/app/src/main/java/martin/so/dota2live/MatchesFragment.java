@@ -55,7 +55,7 @@ public class MatchesFragment extends Fragment {
         matchAdapter = new MatchAdapter(fragmentContext, matchList);
         recyclerView.setAdapter(matchAdapter);
         int numberOfMatchesToShow = 10;
-        allDoneSignal = new CountDownLatch(11);
+        allDoneSignal = new CountDownLatch(10);
         loadMatches(numberOfMatchesToShow);
 
         final Handler mainThreadHandler = new Handler(Looper.getMainLooper());
