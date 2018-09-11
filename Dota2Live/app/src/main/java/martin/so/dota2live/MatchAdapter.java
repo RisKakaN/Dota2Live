@@ -35,18 +35,16 @@ public class MatchAdapter extends RecyclerView.Adapter<MatchAdapter.MatchViewHol
 
         holder.textViewRadiantTeam.setText(match.getRadiantTeam());
         holder.textViewDireTeam.setText(match.getDireTeam());
+
         Date date = new Date(match.getStartTime() * 1000);
         holder.textViewDate.setText(date.toString());
-        if(match.getRadiantImageUrl().equals("null")) {
-            holder.imageViewRadiant.setDefaultImageResId(R.drawable.ic_error_sign);
-        } else {
-            holder.imageViewRadiant.setImageUrl(match.getRadiantImageUrl(), VolleySingleton.getInstance(context).getImageLoader());
-        }
-        if(match.getDireImageUrl().equals("null")) {
-            holder.imageViewDire.setDefaultImageResId(R.drawable.ic_error_sign);
-        } else {
-            holder.imageViewDire.setImageUrl(match.getDireImageUrl(), VolleySingleton.getInstance(context).getImageLoader());
-        }
+
+        holder.imageViewRadiant.setDefaultImageResId(R.drawable.ic_error_sign);
+        holder.imageViewDire.setDefaultImageResId(R.drawable.ic_error_sign);
+        holder.imageViewRadiant.setErrorImageResId(R.drawable.ic_error_sign);
+        holder.imageViewDire.setErrorImageResId(R.drawable.ic_error_sign);
+        holder.imageViewRadiant.setImageUrl(match.getRadiantImageUrl(), VolleySingleton.getInstance(context).getImageLoader());
+        holder.imageViewDire.setImageUrl(match.getDireImageUrl(), VolleySingleton.getInstance(context).getImageLoader());
     }
 
     @Override
