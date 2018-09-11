@@ -9,6 +9,10 @@ import android.view.MenuItem;
 
 public class MainActivity extends AppCompatActivity {
 
+    private Fragment matchFragment;
+    private Fragment searchFragment;
+    private Fragment settingsFragment;
+
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
             = new BottomNavigationView.OnNavigationItemSelectedListener() {
 
@@ -17,16 +21,23 @@ public class MainActivity extends AppCompatActivity {
             Fragment fragment = null;
             switch (item.getItemId()) {
                 case R.id.navigation_matches:
-                    fragment = new MatchesFragment();
+                    fragment = matchFragment;
                     break;
                 case R.id.navigation_search:
-                    fragment = new SearchFragment();
+                    fragment = searchFragment;
                     break;
                 case R.id.navigation_settings:
-                    fragment = new SettingsFragment();
+                    fragment = settingsFragment;
                     break;
             }
             return loadFragment(fragment);
+        }
+    };
+
+    private BottomNavigationView.OnNavigationItemReselectedListener onNavigationItemReselectedListener = new BottomNavigationView.OnNavigationItemReselectedListener() {
+        @Override
+        public void onNavigationItemReselected(@NonNull MenuItem item) {
+
         }
     };
 
@@ -36,10 +47,15 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         VolleySingleton.getInstance(this.getApplicationContext()).getRequestQueue();
 
-        loadFragment(new MatchesFragment());
+        matchFragment = new MatchesFragment();
+        searchFragment = new SearchFragment();
+        settingsFragment = new SettingsFragment();
+
+        loadFragment(matchFragment);
 
         BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.navigation);
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
+        navigation.setOnNavigationItemReselectedListener(onNavigationItemReselectedListener);
     }
 
     private boolean loadFragment(Fragment fragment) {

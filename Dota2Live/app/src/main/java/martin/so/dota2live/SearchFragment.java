@@ -9,9 +9,14 @@ import android.view.ViewGroup;
 
 public class SearchFragment extends Fragment {
 
+    private View view;
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_search, null);
+        if(view == null) {
+            view = inflater.inflate(R.layout.fragment_search, container, false);
+        }
+        return view;
     }
 }

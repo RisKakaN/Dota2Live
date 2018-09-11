@@ -42,47 +42,49 @@ public class MatchesFragment extends Fragment {
     private RecyclerView recyclerView;
     private MatchAdapter matchAdapter;
 
-    View view;
-    Context fragmentContext;
+    private View view;
+    private Context fragmentContext;
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        view = inflater.inflate(R.layout.fragment_matches, container, false);
-        recyclerView = view.findViewById(R.id.recylcerView);
-        recyclerView.setHasFixedSize(true);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
-        matchList = new ArrayList<>();
-        fragmentContext = getActivity().getApplicationContext();
-        matchAdapter = new MatchAdapter(fragmentContext, matchList);
-        recyclerView.setAdapter(matchAdapter);
-        int numberOfMatchesToShow = 10;
-        allDoneSignal = new CountDownLatch(10);
-        loadMatches(numberOfMatchesToShow);
+        if (view == null) {
+            view = inflater.inflate(R.layout.fragment_matches, container, false);
+            recyclerView = view.findViewById(R.id.recylcerView);
+            recyclerView.setHasFixedSize(true);
+            recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+            matchList = new ArrayList<>();
+            fragmentContext = getActivity().getApplicationContext();
+            matchAdapter = new MatchAdapter(fragmentContext, matchList);
+            recyclerView.setAdapter(matchAdapter);
+            int numberOfMatchesToShow = 10;
+            allDoneSignal = new CountDownLatch(10);
+            loadMatches(numberOfMatchesToShow);
 
-        final Handler mainThreadHandler = new Handler(Looper.getMainLooper());
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    allDoneSignal.await(5, TimeUnit.SECONDS);
-                } catch (InterruptedException e) {
-                    Log.e(TAG, e.getMessage());
-                }
-                mainThreadHandler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        Collections.sort(matchList, new Comparator<Match>() {
-                            public int compare(Match m1, Match m2) {
-                                long j1 = m1.getStartTime();
-                                long j2 = m2.getStartTime();
-                                return (Long.compare(j2, j1));
-                            }
-                        });
-                        matchAdapter = new MatchAdapter(fragmentContext, matchList);
-                        recyclerView.setAdapter(matchAdapter);
+            final Handler mainThreadHandler = new Handler(Looper.getMainLooper());
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        allDoneSignal.await(5, TimeUnit.SECONDS);
+                    } catch (InterruptedException e) {
+                        Log.e(TAG, "" + e);
                     }
-                });
-            }
-        }).start();
+                    mainThreadHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            Collections.sort(matchList, new Comparator<Match>() {
+                                public int compare(Match m1, Match m2) {
+                                    long j1 = m1.getStartTime();
+                                    long j2 = m2.getStartTime();
+                                    return (Long.compare(j2, j1));
+                                }
+                            });
+                            matchAdapter = new MatchAdapter(fragmentContext, matchList);
+                            recyclerView.setAdapter(matchAdapter);
+                        }
+                    });
+                }
+            }).start();
+        }
         return view;
     }
 
@@ -120,7 +122,6 @@ public class MatchesFragment extends Fragment {
 
     private void loadMatchOverviewInfo(String matchID) {
         String matchDetailsApiUrl = MATCH_DETAILS_API_URL + matchID;
-
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, matchDetailsApiUrl, null, new Response.Listener<JSONObject>() {
 
             @Override
